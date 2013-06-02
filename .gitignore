@@ -1,17 +1,10 @@
-# Object files
+.dep
+*.eep
+*.elf
+*.hex
+*.lss
+*.lst
+*.map
 *.o
-
-# Libraries
-*.lib
-*.a
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
+*.sym
+*.pnps
