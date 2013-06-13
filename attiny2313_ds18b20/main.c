@@ -1,9 +1,7 @@
 #include <avr/io.h>
 #define F_CPU 16000000UL
 #include <util/delay.h>
-#include <avr/interrupt.h> 
 
-#define CP				 0x70
 #define CT				 0x74 // ascii value for T
 #define C1				 0x31 // ascii value for 1
 #define C2				 0x32 // ascii value for 2
@@ -13,6 +11,7 @@
 #define TX(pin)          DDRD |= pin;
 #define RX(pin)          DDRD &= ~pin;
 #define RXPIN(pin)       PIND&pin
+
 
 // resets and tests ds-18b20 presence on the bus 
 unsigned char ow_detect_presence(unsigned char pin) {
@@ -156,26 +155,9 @@ void transmit_byte(unsigned char data)
 	UDR = data;
 }
 
-void disable_pir_interrupt(void) {
-	GIMSK = 0; // Disable external interrupts int0
-	MCUCR &= ~(1<<ISC01);
-}
-
-void enable_pir_interrupt(void) {
-	GIMSK = _BV (INT0); // Enable external interrupts int0
-	MCUCR = _BV (ISC01); // INT0 is falling edge 
-}
-
 int main(void) {
 	unsigned char data[2];
 	init_uart(0x0067); // Initialize UART with baud rate 4800
-
-	PORTD |= (1 << PD2); //Enable internal pull-up resistor
-	enable_pir_interrupt();
-
-	TIMSK |= (1 << TOIE1); // Enable overflow interrupt 
-
-	sei(); // int - Global enable interrupts 
 
 	while(1) {
 		unsigned char commandChar = receive_byte();
@@ -207,24 +189,4 @@ int main(void) {
 	}
 
 	return 0;
-}
-
-ISR (INT0_vect) // Interrupt on Int0 vector 
-{    
-	disable_pir_interrupt();
-	transmit_byte(CP);
-
-	TCCR1B |= (1<<CS12) | (1<<CS10); // clock/1024 prescaler
-} 
-
-volatile int timer_overflow_count = 0;
-
-ISR(TIMER1_OVF_vect) {
-	if (++timer_overflow_count > 5) { // a timer overflow occurs every 4 seconds
-
-		TCCR1B = 0; // no clock source - timer is stopped
-		enable_pir_interrupt();
-
-		timer_overflow_count = 0;
-	}
 }
