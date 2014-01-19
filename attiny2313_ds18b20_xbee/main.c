@@ -280,7 +280,7 @@ int main(void) {
 
 	for (;;)
 	{
-		if (timer_overflow_count > 3) {
+		if (timer_overflow_count > 9) {
 			timer_overflow_count = 0;
 			enable_xbee();
 
@@ -290,7 +290,9 @@ int main(void) {
 
 			disable_xbee();
 		}
-		if (MCUCR & _BV(SE)){    // If Sleep is Enabled...
+
+		sleep_enable();
+		if (MCUCR & _BV(SE)) {    // If Sleep is Enabled...
 			sleep_mode();        // Go to Sleep
 
 			/****************************
@@ -305,7 +307,5 @@ int main(void) {
 }
 
 ISR(WDT_OVERFLOW_vect) {
-	sleep_disable();          // Disable Sleep on Wakeup
 	timer_overflow_count++;
-	sleep_enable();           // Enable Sleep Mode
 }
